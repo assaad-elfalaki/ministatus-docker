@@ -1,18 +1,19 @@
 name: Docker CI
 
 on:
-    push:
-       branches: [main]
-       tags: ["v*"]
-    pull_request:
-        branches: [main]
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
 
 env:
-          IMAGE: ministatus
+  IMAGE: ministatus
+
 jobs:
   build-scan:
-     runs-on: ubuntu-latest
-     steps:
+    runs-on: ubuntu-latest
+    steps:
       - uses: actions/checkout@v4
 
       - name: Lint du Dockerfile
@@ -21,31 +22,29 @@ jobs:
           dockerfile: Dockerfile
           failure-threshold: warning
 
-      - name: Recuperer le template HTML
-        run: |
-          mkdir -p contrib
-          curl -sSL -o contrib/html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
-
       - name: Build de l'image
         run: docker build --build-arg APP_VERSION=ci -t ${{ env.IMAGE }}:ci .
 
       - name: Tests dans le conteneur
         run: docker run --rm ${{ env.IMAGE }}:ci python -m unittest -v
-         
+
       - name: Rapport Trivy (JSON)
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: ${{ env.IMAGE }}:ci
           format: json
           output: trivy-report.json
           exit-code: "0"
 
+      - name: Telecharger le modele HTML
+        run: curl -sSfL -o html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
+
       - name: Rapport Trivy (HTML)
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: ${{ env.IMAGE }}:ci
           format: template
-          template: "@contrib/html.tpl"
+          template: "@html.tpl"
           output: trivy-report.html
           exit-code: "0"
 
@@ -66,7 +65,7 @@ jobs:
           path: trivy-report.*
 
       - name: Quality gate (HIGH et CRITICAL)
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: ${{ env.IMAGE }}:ci
           format: table
