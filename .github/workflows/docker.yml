@@ -7,7 +7,7 @@ on:
     pull_request:
         branches: [main]
 
-        env:
+env:
           IMAGE: ministatus
 jobs:
   build-scan:
