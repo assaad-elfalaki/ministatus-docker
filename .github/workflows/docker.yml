@@ -36,7 +36,7 @@ jobs:
           exit-code: "0"
 
       - name: Rapport Trivy (HTML)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.25.0
         with:
           image-ref: ${{ env.IMAGE }}:ci
           format: template
